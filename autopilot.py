@@ -42,7 +42,10 @@ def setUpVariables(infoList,PnB):
     return PnB
 
 def setMovementControls(drone,PnB):
-    amt = None
+    amtH = 0
+    amtV = 0
+    amtT= 0
+    amtY =0
     if (PnB.centerOfBall == None or PnB.area == None) or ((PnB.centerOfBall[0]>=PnB.center[0]-5 and PnB.centerOfBall[0]<=PnB.center[0]+5)
                                                   and(PnB.centerOfBall[1]>=PnB.center[1]-5 and PnB.centerOfBall[1]<=PnB.center[1]+5)
                                                   and (PnB.area >= PnB.CENTERALAREA - 10 and PnB.area <= PnB.CENTERALAREA + 10)):
@@ -51,32 +54,39 @@ def setMovementControls(drone,PnB):
     else:
         #horizontal controls
         if PnB.centerOfBall[0] < PnB.center[0]-5:
-            drone.speed = (testPercent(PnB.centerOfBall[0],PnB.center[0]))
-            drone.move_left()
-            print 'moving left at ' + drone.speed +' amount of speed'
+        	amtH=testPercent(PnB.centerOfBall[0],PnB.center[0])
+            #drone.speed = (testPercent(PnB.centerOfBall[0],PnB.center[0]))
+            #drone.move_left()
+            print 'moving right at ' + amtH +' amount of speed'
         elif PnB.centerOfBall[0] > PnB.center[0]+5:
-            drone.speed = testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
-            drone.move_right()
-            print 'moving right at '+ drone.speed +' amount of speed'
+        	amtH=-testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0]))
+            #drone.speed = testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
+            #drone.move_right()
+            print 'moving right at '+ amtH +' amount of speed'
         #vertical controls
         if PnB.centerOfBall[1] < PnB.center[1]-5:
-            drone.speed = testPercent(PnB.centerOfBall[1],PnB.center[1])
-            drone.move_down()
-            print 'moving down at ' + drone.speed +' amount of speed'
+        	amtV = -testPercent(PnB.centerOfBall[1],PnB.center[1])
+            #drone.speed = testPercent(PnB.centerOfBall[1],PnB.center[1])
+            #drone.move_down()
+            print 'moving down at ' + amtV +' amount of speed'
         elif PnB.centerOfBall[1] > PnB.center[1]+5:
-            drone.speed = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
-            drone.move_up()
-            print 'moving up at '+ drone.speedamt +' amount of speed'
+        	amtV = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
+            #drone.speed = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
+            #drone.move_up()
+            print 'moving up at '+ amtV +' amount of speed'
 
         #front back controls
         if PnB.area < PnB.CENTERALAREA - 10:
-            drone.speed = testPercent(PnB.area,PnB.CENTERALAREA)
-            drone.move_front()
-            print 'moving front at '+ drone.speed +' amount of speed'
+        	amtY = -testPercent(PnB.area,PnB.CENTERALAREA)
+            #drone.speed = testPercent(PnB.area,PnB.CENTERALAREA)
+            #drone.move_front()
+            print 'moving front at '+ amtY+' amount of speed'
         elif PnB.area > PnB.CENTERALAREA + 10:
-            drone.speed = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
-            drone.move_back()
-            print 'moving back at '+ drone.speed +' amount of speed'
+        	amtY = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+            #drone.speed = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+            #drone.move_back()
+            print 'moving back at '+ amtY +' amount of speed'
+		drone.at(at_pcmd, True,amtH, amtY,amtV, 0)
     return drone
 
 def testPercent(numberTo, test):
