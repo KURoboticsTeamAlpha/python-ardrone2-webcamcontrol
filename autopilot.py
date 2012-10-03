@@ -1,3 +1,23 @@
+################################################################
+#	Filename: 		autopilot.py
+#
+#	Author: 			Matthew Bachman
+#
+# Description:  this file allow the control of the AR.Drone and AR.Drone2 with a webcam
+#							and a green plate.  The plate color is green and is completely lighting
+#							dependent.  This file is meant to run with of demo2.py and is dependent 
+#							on libraries of opencv, math and is also dependent on the files libardrone.py 
+#							and PicAndBall.py
+#
+#	License: 		Feel free to use, distribute, modify, change, destroy, sell, or anything else you
+#							could think of doing with this software.  It is distributed with no warrenty and
+#							no garuntee that it will work for you.
+#
+# Tested On:  	Ubuntu 12.0.4 64bit, Python 2.7, AR.Drone2.
+#
+# Created On: 10/2/2012 
+#
+#################################################################
 import cv2.cv as cv
 import math
 import libardrone
