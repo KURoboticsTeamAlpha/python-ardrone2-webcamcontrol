@@ -10,7 +10,9 @@ def autopilot(drone,PnB):
     PnB.count += 1
     frame = cv.QueryFrame(PnB.capture)
     infoList=findImage(frame)
-    if displayImage(infoList,frame, PnB):
+    results = displayImage(infoList,frame, PnB)
+    PnB = results[1]
+    if results[0]:
         PnB = setUpVariables(infoList, PnB)
         return (setMovementControls(drone, PnB),PnB)
     return (drone,PnB)
@@ -25,7 +27,7 @@ def displayImage(infoList,orig, PnB):
         PnB.updateThresh(infoList[1])
         PnB.updateWin(infoList[0][2])
         result = True
-    return result
+    return (result,PnB)
 
 def setUpVariables(infoList,PnB):
     if PnB.count >= 1 and PnB.area != None:

@@ -23,6 +23,8 @@
 Python library for the AR.Drone.
 
 This module was tested with Python 2.6.6 and AR.Drone vanilla firmware 1.5.1.
+
+EDITED: Matt Bachman added isEmergency
 """
 
 
@@ -67,6 +69,7 @@ class ARDrone(object):
         self.image = ""
         self.navdata = dict()
         self.time = 0
+        self.isEmergency = 0
 
     def takeoff(self):
         """Make the drone takeoff."""
@@ -116,8 +119,12 @@ class ARDrone(object):
 
     def reset(self):
         """Toggle the drone's emergency state."""
-        self.at(at_ref, False, True)
-        self.at(at_ref, False, False)
+        if self.isEmergency:
+        	self.at(at_ref, False, True)
+        	self.isEmergency = 1
+        else:
+        	self.at(at_ref, False, False)
+        	self.isEmergency = 0
 
     def trim(self):
         """Flat trim the drone."""
