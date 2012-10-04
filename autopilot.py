@@ -1,23 +1,25 @@
-################################################################
-#	Filename: 		autopilot.py
+###################################################################################################
+# Filename: 	autopilot.py
 #
-#	Author: 			Matthew Bachman
+# Author: 	Matthew Bachman
 #
 # Description:  this file allow the control of the AR.Drone and AR.Drone2 with a webcam
-#							and a green plate.  The plate color is green and is completely lighting
-#							dependent.  This file is meant to run with of demo2.py and is dependent 
-#							on libraries of opencv, math and is also dependent on the files libardrone.py 
-#							and PicAndBall.py
+#		and a green plate.  The plate color is green and is completely lighting
+#		dependent.  This file is meant to run with of demo2.py and is dependent 
+#		on libraries of opencv, math and is also dependent on the files libardrone.py 
+#		and PicAndBall.py
 #
-#	License: 		Feel free to use, distribute, modify, change, destroy, sell, or anything else you
-#							could think of doing with this software.  It is distributed with no warrenty and
-#							no garuntee that it will work for you.
+# License: 	Feel free to use, distribute, modify, change, destroy, sell, or anything else you
+#		could think of doing with this software.  It is distributed with no warrenty and
+#	        no garuntee that it will work for you.
 #
 # Tested On:  	Ubuntu 12.0.4 64bit, Python 2.7, AR.Drone2.
 #
-# Created On: 10/2/2012 
+# Created On:   10/2/2012
 #
-#################################################################
+# Need to Know: infoList contains ((x,y,img,area),thresholded image)
+#
+####################################################################################################
 import cv2.cv as cv
 import math
 import libardrone
@@ -25,21 +27,21 @@ import PicAndBall
 
 
 def autopilot(drone,PnB):
-        if PnB.count == 0:
-                frame = cv.QueryFrame(PnB.capture)
-	PnB.count += 1
-	frame = cv.QueryFrame(PnB.capture)
-	if PnB.center[0] == 0 and PnB.center[1] == 0:
-                PnB.center = ((int)(frame.height/2),(int)(frame.width/2))
-        infoList=findImage(frame)
-        results = displayImage(infoList,frame, PnB)
-        PnB = results[1]
-        if results[0]:
-                PnB = setUpVariables(infoList, PnB)
-                return (setMovementControls(drone, PnB),PnB)
-        return (drone,PnB)
+    #if PnB.count == 0:
+    #frame = cv.QueryFrame(PnB.capture)
+    PnB.count += 1
+    frame = cv.QueryFrame(PnB.capture)
+    if PnB.center[0] == 0 and PnB.center[1] == 0:
+        PnB.center = ((int)(frame.height/2),(int)(frame.width/2))
+    infoList=findImage(frame)
+    results = displayImage(infoList,frame, PnB)
+    PnB = results[1]
+    if results[0]:
+        PnB = setUpVariables(infoList, PnB)
+        return (setMovementControls(drone, PnB),PnB)
+    return (drone,PnB)
 
-#infoList contains ((x,y,img,area),thresholded image)
+
 def displayImage(infoList,orig, PnB):
     result = False
     if infoList == None:
@@ -63,54 +65,59 @@ def setUpVariables(infoList,PnB):
         PnB.centerOfBall = (infoList[0][0],infoList[0][1])
     return PnB
 
+def testCentered(PnB):
+    if PnB.centerOfBall[0]>=PnB.center[0]-5 and PnB.centerOfBall[0]<=PnB.center[0]+5:
+        if PnB.centerOfBall[1]>=PnB.center[1]-5 and PnB.centerOfBall[1]<=PnB.center[1]+5:
+            if PnB.area >= PnB.CENTERALAREA - 10 and PnB.area <= PnB.CENTERALAREA + 10:
+                return True
+    return False
+        
+
 def setMovementControls(drone,PnB):
     amtH = 0
     amtV = 0
     amtT= 0
     amtY =0
-    if (PnB.centerOfBall == None or PnB.area == None) or ((PnB.centerOfBall[0]>=PnB.center[0]-5 and PnB.centerOfBall[0]<=PnB.center[0]+5)
-                                                  and(PnB.centerOfBall[1]>=PnB.center[1]-5 and PnB.centerOfBall[1]<=PnB.center[1]+5)
-                                                  and (PnB.area >= PnB.CENTERALAREA - 10 and PnB.area <= PnB.CENTERALAREA + 10)):
+    if (PnB.centerOfBall == None or PnB.area == None) or testCentered(PnB):
         drone.hover()
         print 'hovering'
     else:
         #horizontal controls
         if PnB.centerOfBall[0] < PnB.center[0]-5:
-        	amtH=testPercent(PnB.centerOfBall[0],PnB.center[0])
-        	print 'moving right at ' + amtH +' amount of speed'
+            amtH=testPercent(PnB.centerOfBall[0],PnB.center[0])
+            print 'moving right at ' + amtH +' amount of speed'
             #drone.speed = (testPercent(PnB.centerOfBall[0],PnB.center[0]))
             #drone.move_left()
         elif PnB.centerOfBall[0] > PnB.center[0]+5:
-        	amtH=-testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
-        	print 'moving right at '+ amtH +' amount of speed'
+            amtH=-testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
+            print 'moving right at '+ amtH +' amount of speed'
             #drone.speed = testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
             #drone.move_right()
             
         #vertical controls
         if PnB.centerOfBall[1] < PnB.center[1]-5:
-        	amtV = -testPercent(PnB.centerOfBall[1],PnB.center[1])
-        	print 'moving down at ' + amtV +' amount of speed'
-		if PnB.centerOfBall[1] > PnB.center[1]+5:
-			amtV = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
-			print 'moving up at '+ amtV +' amount of speed'
+            amtV = -testPercent(PnB.centerOfBall[1],PnB.center[1])
+            print 'moving down at ' + amtV +' amount of speed'
+        elif PnB.centerOfBall[1] > PnB.center[1]+5:
+            amtV = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
+            print 'moving up at '+ amtV +' amount of speed'
             #drone.speed = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
             #drone.move_up()
             
 
         #front back controls
         if PnB.area < PnB.CENTERALAREA - 10:
-        	amtY = -testPercent(PnB.area,PnB.CENTERALAREA)
-        	print 'moving front at '+ amtY+' amount of speed'
+            amtY = -testPercent(PnB.area,PnB.CENTERALAREA)
+            print 'moving front at '+ amtY+' amount of speed'
             #drone.speed = testPercent(PnB.area,PnB.CENTERALAREA)
             #drone.move_front()
-            
         elif PnB.area > PnB.CENTERALAREA + 10:
-        	amtY = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
-        	print 'moving back at '+ amtY +' amount of speed'
+            amtY = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+            print 'moving back at '+ amtY +' amount of speed'
             #drone.speed = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
             #drone.move_back()
             
-		drone.at(at_pcmd, True,amtH, amtY,amtV, 0)
+	drone.at(at_pcmd, True,amtH, amtY,amtV, 0)
     return drone
 
 def testPercent(numberTo, test):
