@@ -25,17 +25,19 @@ import PicAndBall
 
 
 def autopilot(drone,PnB):
-    if PnB.center == None:
-        PnB.center = ((int)(PnB.capture.height/2),(int)(PnB.capture.width/2))
-    PnB.count += 1
-    frame = cv.QueryFrame(PnB.capture)
-    infoList=findImage(frame)
-    results = displayImage(infoList,frame, PnB)
-    PnB = results[1]
-    if results[0]:
-        PnB = setUpVariables(infoList, PnB)
-        return (setMovementControls(drone, PnB),PnB)
-    return (drone,PnB)
+        if PnB.count == 0:
+                frame = cv.QueryFrame(PnB.capture)
+	PnB.count += 1
+	frame = cv.QueryFrame(PnB.capture)
+	if PnB.center[0] == 0 and PnB.center[1] == 0:
+                PnB.center = ((int)(frame.height/2),(int)(frame.width/2))
+        infoList=findImage(frame)
+        results = displayImage(infoList,frame, PnB)
+        PnB = results[1]
+        if results[0]:
+                PnB = setUpVariables(infoList, PnB)
+                return (setMovementControls(drone, PnB),PnB)
+        return (drone,PnB)
 
 #infoList contains ((x,y,img,area),thresholded image)
 def displayImage(infoList,orig, PnB):
@@ -75,37 +77,39 @@ def setMovementControls(drone,PnB):
         #horizontal controls
         if PnB.centerOfBall[0] < PnB.center[0]-5:
         	amtH=testPercent(PnB.centerOfBall[0],PnB.center[0])
+        	print 'moving right at ' + amtH +' amount of speed'
             #drone.speed = (testPercent(PnB.centerOfBall[0],PnB.center[0]))
             #drone.move_left()
-            print 'moving right at ' + amtH +' amount of speed'
         elif PnB.centerOfBall[0] > PnB.center[0]+5:
-        	amtH=-testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0]))
+        	amtH=-testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
+        	print 'moving right at '+ amtH +' amount of speed'
             #drone.speed = testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
             #drone.move_right()
-            print 'moving right at '+ amtH +' amount of speed'
+            
         #vertical controls
         if PnB.centerOfBall[1] < PnB.center[1]-5:
         	amtV = -testPercent(PnB.centerOfBall[1],PnB.center[1])
-            #drone.speed = testPercent(PnB.centerOfBall[1],PnB.center[1])
-            #drone.move_down()
-            print 'moving down at ' + amtV +' amount of speed'
-        elif PnB.centerOfBall[1] > PnB.center[1]+5:
-        	amtV = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
+        	print 'moving down at ' + amtV +' amount of speed'
+		if PnB.centerOfBall[1] > PnB.center[1]+5:
+			amtV = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
+			print 'moving up at '+ amtV +' amount of speed'
             #drone.speed = testPercent((PnB.center[1]*2)-PnB.centerOfBall[1],PnB.center[1])
             #drone.move_up()
-            print 'moving up at '+ amtV +' amount of speed'
+            
 
         #front back controls
         if PnB.area < PnB.CENTERALAREA - 10:
         	amtY = -testPercent(PnB.area,PnB.CENTERALAREA)
+        	print 'moving front at '+ amtY+' amount of speed'
             #drone.speed = testPercent(PnB.area,PnB.CENTERALAREA)
             #drone.move_front()
-            print 'moving front at '+ amtY+' amount of speed'
+            
         elif PnB.area > PnB.CENTERALAREA + 10:
         	amtY = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+        	print 'moving back at '+ amtY +' amount of speed'
             #drone.speed = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
             #drone.move_back()
-            print 'moving back at '+ amtY +' amount of speed'
+            
 		drone.at(at_pcmd, True,amtH, amtY,amtV, 0)
     return drone
 
@@ -147,7 +151,7 @@ def drawCircles(cont,img):
             li = [x,y,img,area]
     return li
 
-def findImage(img,PnB):
+def findImage(img):
     #Set up storage for images
     frame_size = cv.GetSize(img)
     img2 = cv.CreateImage(frame_size,8,3)
@@ -177,7 +181,7 @@ def findImage(img,PnB):
     elmt_shape=cv.CV_SHAPE_ELLIPSE
     pos = 3
     element = cv.CreateStructuringElementEx(pos*2+1, pos*2+1, pos, pos, elmt_shape)
-    cv.Dialate(tmp,tmp,element,6)
+    cv.Dilate(tmp,tmp,element,6)
     cv.Erode(tmp,tmp,element,2)
 
     cv.Split(tmp,h,None,None,None)

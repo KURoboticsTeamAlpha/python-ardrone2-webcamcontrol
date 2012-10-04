@@ -17,6 +17,7 @@ HISTORY:
 							-Added isEmergency variable to libardrone
 	10-3-2012: By Matt Bachman
 							-Made movement 1 command, allowing diagonal directions.
+							-fixed typos and spacing issues
 							
 TODO:
 	-Add Video Support from the drone
