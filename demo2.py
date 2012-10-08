@@ -31,13 +31,18 @@ stream.
 import pygame
 
 import libardrone
-
-import autopilot
+import cv2.cv as cv
+import math
+import sys
+import SuS
 import PicAndBall
+
+
 
 def main():
     pygame.init()
     W, H = 320, 240
+    FindMe = PicAndBall.PicAndBall(300,0,0)
     screen = pygame.display.set_mode((W, H))
     drone = libardrone.ARDrone()
     clock = pygame.time.Clock()
@@ -45,8 +50,9 @@ def main():
     running = True
     autopylot = False
     #INFO FOR AUTOPILOT WITH OPENCV
-    myInfo = PicAndBall.PicAndBall(300,0,0)
+    #myInfo = PicAndBall.PicAndBall(300,0,0)
     while running:
+        drone.speed = 0.1
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False 
@@ -64,12 +70,7 @@ def main():
                     running = False
                 # takeoff / land
                 elif event.key == pygame.K_RETURN:
-		    if not flying:
-                    	drone.takeoff()
-			flying = True
-		    else:
-			drone.land()
-			flying = False
+		    drone.takeoff()
                 elif event.key == pygame.K_SPACE:
                     drone.land()
                 # emergency
@@ -118,9 +119,108 @@ def main():
                 elif event.key == pygame.K_0:
                     drone.speed = 1.0
 	if autopylot:
-	    myList = autopilot.autopilot(drone,myInfo)
-	    drone = myList[0]
-	    myInfo = myList[1]
+##            try:
+##                capture = cv.CaptureFromCAM(0)
+##                cv.NamedWindow('win',cv.CV_WINDOW_AUTOSIZE)
+##                cv.NamedWindow('thresh',cv.CV_WINDOW_AUTOSIZE)
+##            except:
+##                print 'No WebCam Data'
+##                exit()
+            #justMoved[1]=horizontal, justMoved[2] =verticle
+            XjustMoved = False
+            YneedsMove = False
+            ZneedsMove = False
+	    while True:
+                #PnB.count += 1
+##                frame = cv.QueryFrame(capture)
+##                if not frame:
+##                    frame = cv.QueryFrame(capture)
+
+                #Check to see if a center has been created, if not, create it
+                #er[0] == 0 and PnB.center[1] == 0:
+                #    PnB.center = ((int)(frame.height/2),(int)(frame.width/2))
+                #find the image and display in the frame
+                #infoList=findImage(frame)
+                #results = displayImage(infoList,frame, PnB)
+                
+                results = SuS.setUpStuff(FindMe)
+                #FindMe = results[0]
+                infoList = results[1] 
+                #if the dot was located move the drone, else make the drone hover
+                if results[0]:
+                    FindMe = setUpVariables(infoList,FindMe)
+                    if (FindMe.centerOfBall == None or FindMe.area == None) or testCentered(FindMe):
+                        drone.hover()
+                        print 'hovering'
+                    else:
+                        #horizontal controls
+                        if not XjustMoved and not YneedsMove and not ZneedsMove:
+                            if FindMe.centerOfBall[0] < FindMe.center[0]-5:
+                                #drone.speed=testPercent(PnB.centerOfBall[0],PnB.center[0])
+                                drone.move_right()
+                                print 'moving right at '
+                                cv.WaitKey(20)
+                                XjustMoved = True
+                                
+                            elif FindMe.centerOfBall[0] > FindMe.center[0]+5:
+                                #drone.speed=testPercent((PnB.center[0]*2)-PnB.centerOfBall[0],PnB.center[0])
+                                drone.move_left()
+                                cv.WaitKey(20)
+                                print 'moving left at '
+                                XjustMoved = True
+            
+                            
+                        #vertical controls
+                        if not YneedsMove:
+                            if FindMe.centerOfBall[1] < FindMe.center[1] or FindMe.centerOfBall[1] > FindMe.center[1]:
+                                YneedsMove = True
+                        else:
+                            if FindMe.centerOfBall[1] < FindMe.center[1]:
+                                #drone.speed = testPercent(PnB.centerOfBall[1],PnB.center[1])
+                                drone.speed = .1
+                                drone.move_down()
+                                print 'moving down at '
+                                cv.WaitKey(20)
+                            elif FindMe.centerOfBall[1] > FindMe.center[1]:
+                                drone.speed = .1
+                                drone.move_up()
+                                cv.WaitKey(20)
+                                print 'moving up at '
+                            YneedsMove = False
+                            XjustMoved = False
+                                
+                                
+                            
+                        drone.speed = .1
+                        #front back controls
+                        #if PnB.area < PnB.CENTERALAREA - 50:
+                        if not ZneedsMove:
+                            if FindMe.are <15000 or FindMe.area > 17000
+                        if FindMe.area < 15000:
+                            #amtY = -testPercent(PnB.area,PnB.CENTERALAREA)
+                            #drone.speed = .3
+                            drone.move_forward()
+                            cv.WaitKey(20)
+                            print 'moving front at '
+                            #+ str(amtY)+' amount of speed'
+                            #drone.speed = testPercent(PnB.area,PnB.CENTERALAREA)
+                            #drone.move_front()
+                        #elif PnB.area > PnB.CENTERALAREA + 50:
+                        elif FindMe.area > 17000:
+                            #amtY = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+                            #drone.speed = .3
+                            drone.move_backward()
+                            cv.WaitKey(20)
+                            print 'moving back at '
+                            #+ str(amtY) +' amount of speed'
+                            #drone.speed = testPercent((PnB.CENTERALAREA*2)-PnB.area,PnB.CENTERALAREA)
+                            #drone.move_back()drone = (setMovementControls(PnB),PnB)
+                else:
+                    drone.hover()
+                if cv.WaitKey(100) == 27:
+                    autopylot = False
+                    break
+
 
         try:
             surface = pygame.image.fromstring(drone.image, (W, H), 'RGB')
@@ -141,6 +241,30 @@ def main():
     print "Shutting down...",
     drone.halt()
     print "Ok."
+
+
+
+
+
+def testCentered(PnB):
+    if PnB.centerOfBall[0]>=PnB.center[0]-5 and PnB.centerOfBall[0]<=PnB.center[0]+5:
+        if PnB.centerOfBall[1]>=PnB.center[1]-5 and PnB.centerOfBall[1]<=PnB.center[1]+5:
+            if PnB.area >= 17000 and PnB.area <= 15000:
+                return True
+    return False
+
+def setUpVariables(infoList,FindMe):
+    if FindMe.area != None:
+        if infoList[0][3] > FindMe.area/2:
+            FindMe.area = infoList[0][3]
+            FindMe.centerOfBall = (infoList[0][0],infoList[0][1])
+        else:
+            print 'false area'
+    else:
+        FindMe.area = infoList[0][3]
+        FindMe.centerOfBall = (infoList[0][0],infoList[0][1])
+    return FindMe
+
 
 if __name__ == '__main__':
     main()

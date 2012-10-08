@@ -22,23 +22,25 @@ import sys
 
 
 class PicAndBall:
-    def __init__(self,centArea,CAMNUM, c,cOb=None,a=None):
+    def __init__(self,centArea,CAMNUM, c,drone = None,cOb=None,a=None):
         self.centerOfBall = cOb
         self.count = c
         self.center = (0,0)
         self.area = a
-        self.CENTERALAREA = centArea
-        try:
-            self.capture = cv.CaptureFromCAM(1)
-        except:
-            print 'No WebCam Data'
-            exit()
-        cv.NamedWindow('win',cv.CV_WINDOW_AUTOSIZE)
-        cv.NamedWindow('thresh',cv.CV_WINDOW_AUTOSIZE)
+        #self.CENTERALAREA = centArea
+        self.CENTERALAREA = 12000
+        self.drone = drone
+##        try:
+##            self.capture = cv.CaptureFromCAM(1)
+##        except:
+##            print 'No WebCam Data'
+##            exit()
+##        cv.NamedWindow('win',cv.CV_WINDOW_AUTOSIZE)
+##        cv.NamedWindow('thresh',cv.CV_WINDOW_AUTOSIZE)
 
-    def updateWin(frame):
-        cv.ShowImage('win',frame)
+    #def updateWin(frame):
+    #    cv.ShowImage('win',frame)
 
-    def updateThresh(frame):
-        cv.ShowImage('thresh',frame)
+    #def updateThresh(frame):
+    #    cv.ShowImage('thresh',frame)
  
